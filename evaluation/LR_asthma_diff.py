@@ -20,6 +20,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from scipy.stats import logistic
 
 # モジュールの相対参照制限を強制的に回避
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -86,6 +87,10 @@ def eval_diff(df1: pd.DataFrame, df2: pd.DataFrame,
     diff = (t2i[COLS_ORDER[1:]] - t1i[COLS_ORDER[1:]]).reset_index()
     diff = diff.rename(columns={"index": "term"})
     diff = diff[COLS_ORDER]  # 列順を固定
+
+    # "coef"の差分にsigmoid関数を噛ませて開区間(0, 1)に写像
+    diff["coef"] = logistic.cdf(diff["coef"])
+
     # NaN 安全化（念のため）
     for c in COLS_ORDER[1:]:
         diff[c] = pd.to_numeric(diff[c], errors="coerce").fillna(0.0)
