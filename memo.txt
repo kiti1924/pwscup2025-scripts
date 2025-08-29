@@ -7,26 +7,28 @@
 ### B22_1
 python anonymization/ano.py in/B22_1.csv out/C22_1.csv
 python anonymization/randomshuffle_rows.py out/C22_1.csv out/C22_1_shuffled.csv
-python anonymization/gen_Di.py in/B22_1.csv out/C22_1_shuffled.csv
+python anonymization/gen_Di.py in/B22_1.csv out/C22_1_shuffled.csv out/sample_D22_1.json
+
 
 ## console output:
-accuracy: 0.8987
-a Di.json example was saved as sample_Di.json
+accuracy: 0.8973
+a Di.json example was saved as out/sample_D22_1.json
 
 ### B22_2
 python anonymization/ano.py in/B22_2.csv out/C22_2.csv
 python anonymization/randomshuffle_rows.py out/C22_2.csv out/C22_2_shuffled.csv
-python anonymization/gen_Di.py in/B22_2.csv out/C22_2_shuffled.csv
+python anonymization/gen_Di.py in/B22_2.csv out/C22_2_shuffled.csv out/sample_D22_2.json
+
 
 ## console output:
-accuracy: 0.895
-a Di.json example was saved as sample_Di.json
+accuracy: 0.8906
+a Di.json example was saved as out/sample_D22_2.json
 
 ### B22_3
 python anonymization/ano.py in/B22_3.csv out/C22_3.csv
 python anonymization/randomshuffle_rows.py out/C22_3.csv out/C22_3_shuffled.csv
-python anonymization/gen_Di.py in/B22_3.csv out/C22_3_shuffled.csv
+python anonymization/gen_Di.py in/B22_3.csv out/C22_3_shuffled.csv out/sample_D22_3.json
 
 ## console output:
-accuracy: 0.8997
-a Di.json example was saved as sample_Di.json
+accuracy: 0.8993
+a Di.json example was saved as out/sample_D22_3.json
