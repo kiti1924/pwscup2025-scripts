@@ -24,4 +24,9 @@ python anonymization/gen_Di.py in/B22_3.csv out/C22_3_shuffled.csv out/sample_D2
 
 ### eval C22_*
 evalfiles.py
+out/evalfiles.txt
+#### This evaluation only depend on the rate of errors of "stroke_flag" inference.
+
+## attack
+
 
