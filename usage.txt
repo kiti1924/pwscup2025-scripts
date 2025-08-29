@@ -1,6 +1,9 @@
 ## This memo is for reference, history of my testing
 ## input folder: in/
+### place input files(B22_*.csv) 
+
 ## output folder: out/
+### output files(C22_*.csv, C22_*.csv_shuffled.csv, sample_D22_*.json will be generated)
 
 
 ## anonymization
