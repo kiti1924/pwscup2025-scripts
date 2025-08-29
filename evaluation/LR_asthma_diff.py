@@ -88,8 +88,8 @@ def eval_diff(df1: pd.DataFrame, df2: pd.DataFrame,
     diff = diff.rename(columns={"index": "term"})
     diff = diff[COLS_ORDER]  # 列順を固定
 
-    # "coef"の差分にsigmoid関数を噛ませて開区間(0, 1)に写像
-    diff["coef"] = logistic.cdf(diff["coef"])
+    # "coef"の差分にsigmoid関数を噛ませて開区間(-1, 1)に写像
+    diff["coef"] = (logistic.cdf(diff["coef"]) - 0.5) * 2
 
     # NaN 安全化（念のため）
     for c in COLS_ORDER[1:]:
