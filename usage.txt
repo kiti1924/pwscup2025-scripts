@@ -23,5 +23,14 @@ python anonymization/randomshuffle_rows.py out/C22_3.csv out/C22_3_shuffled.csv
 python anonymization/gen_Di.py in/B22_3.csv out/C22_3_shuffled.csv out/sample_D22_3.json
 
 ### eval C22_*
-evalfiles.py
+python evalfiles.py
+output: out/evalfiles.txt
+#### This accuracy only depends on the inference errors of "stroke_flag".
+
+## evaluation
+python evaluation/eval_all.py
+
+
+## attack
+# python attack/attack_example.py -o out/Fij_1.csv out/Ai.csv out/Ci.csv
 
