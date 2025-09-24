@@ -39,6 +39,22 @@ class Attack_Di_Base(ABC):
         
         # 説明変数と目的変数に分割
         X = build_X(Ai_df, TARGET)
+
+        # Xのみにある列は削除する, 9/10追記
+        columns_only_X = set(X.columns) - set(self.xgbt_model.feature_names)
+        if columns_only_X:
+            X = X.drop(columns=columns_only_X)
+
+        # xgbt_model.feature_namesのみにある列は0埋め, 9/10追記
+        columns_only_feature_names = set(self.xgbt_model.feature_names) - set(X.columns)
+        if columns_only_feature_names:
+            for col in columns_only_feature_names:
+                # 0で埋める
+                X[col] = 0
+
+        # Xの列をXGBoostモデルが要求する順番に並び替え, 9/10追記
+        X = X.reindex(columns=self.xgbt_model.feature_names)
+
         X.columns = self.xgbt_model.feature_names
         self.X = X.copy()
         self.y = pd.to_numeric(Ai_df[TARGET], errors="coerce").astype(int).values
@@ -92,6 +108,20 @@ class Conf_Attack(Attack_Di_Base):
 
         return inferred
 
+class TopConfAttack(Attack_Di_Base):
+    """
+    モデルの確信度top1000の行をmemberと推定
+    """
+    def infer(self, path_to_Ai_csv):
+        super().infer(path_to_Ai_csv)
+
+        pred = self.xgbt_model.predict(xgb.DMatrix(self.X))
+        confidence = (-1) * pd.DataFrame(pred-self.y, columns=["conf"]).abs() 
+        inferred = pd.DataFrame(0, index=range(pred.shape[0]), columns=["inferred"])
+        inferred.loc[confidence["conf"].nlargest(10000).index, "inferred"] = 1
+        self.inferred = inferred
+
+        return inferred
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="")
@@ -106,3 +136,7 @@ if __name__ == "__main__":
     attacker = Conf_Attack(args.model_json)
     pred = attacker.infer(args.Ai_csv)
     attacker.save_inferred("inferred_membership2.csv")
+
+    attacker = TopConfAttack(args.model_json)
+    pred = attacker.infer(args.Ai_csv)
+    attacker.save_inferred("inferred_membership3.csv")
