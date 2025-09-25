@@ -4,3 +4,6 @@ scipy
 xgboost
 scikit-learn
 statsmodels
+DataSynthesizer
+ipykernel
+tqdm
