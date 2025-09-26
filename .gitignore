@@ -21,6 +21,7 @@ build/
 # input / output
 in/**/*.csv
 in/**/*.json
+in/**/*.pkl
 out/**/*.csv
 out/**/*.json
 
