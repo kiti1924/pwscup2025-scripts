@@ -12,7 +12,8 @@ Important: Input files go in `in/`. Outputs are written to `out/`.
 
 **Folder Overview**
 - `in/`: Place input CSVs (e.g., `B22_*.csv`).
-- `out/`: Generated outputs (e.g., `C22_*.csv`, `C22_*_shuffled.csv`, sample `D22_*.json`, attacks, reports).
+- `out_anonymized/`: Generated outputs (e.g., `C22_*.csv`, `C22_*_shuffled.csv`, sample `D22_*.json`).
+- `out_attack/`: Generated outputs (e.g., `C22_*.csv`, `C22_*_shuffled.csv`, sample `D22_*.json`, attacks, reports).
 - `anonymization/`: Anonymization and accuracy scripts (e.g., `ano.py`, `randomshuffle_rows.py`, `gen_Di.py`, `MLacc_files.py`).
 - `evaluation/`: Utility/quality metrics and scoring tools (e.g., `eval_all.py`, `gen_ans.py`, `check_ans.py`).
 - `attack/`: Attack implementations and variants (Ci/Di/combined) and batch helpers.
