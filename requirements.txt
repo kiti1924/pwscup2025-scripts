@@ -8,3 +8,4 @@ DataSynthesizer
 ipykernel
 tqdm
 statsmodels
+jupyter
