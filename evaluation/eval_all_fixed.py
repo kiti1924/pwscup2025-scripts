@@ -53,17 +53,17 @@ def eval_Ci_utility(path_to_Bi_csv:str, path_to_Ci_csv:str,
     # 基本統計の誤差を算出
     stats_diff_max_abs = stats_diff.eval(path_to_Bi_csv, path_to_Ci_csv, 
                                          print_details=print_details)
-    print(f"stats_diff max_abs: {stats_diff_max_abs}")
+    # print(f"stats_diff max_abs: {stats_diff_max_abs}")
 
     # Logistic Regressionでの誤差を算出
     LR_asthma_diff_max_abs = LR_asthma_diff.eval(path_to_Bi_csv, path_to_Ci_csv, 
                                                  print_details=print_details)
-    print(f"LR_asthma_diff max_abs: {LR_asthma_diff_max_abs}")
+    # print(f"LR_asthma_diff max_abs: {LR_asthma_diff_max_abs}")
     
     # KW_IND_diff
     KW_IND_diff_max_abs = KW_IND_diff.eval(path_to_Bi_csv, path_to_Ci_csv, 
                                            print_details=print_details)
-    print(f"KW_IND_diff max_abs: {KW_IND_diff_max_abs}")
+    # print(f"KW_IND_diff max_abs: {KW_IND_diff_max_abs}")
 
     # 重み付きutility
     Ci_utility = 40 * (1-stats_diff_max_abs) + 20 * (1-LR_asthma_diff_max_abs) + 20 * (1-KW_IND_diff_max_abs)
@@ -73,7 +73,7 @@ def eval_Ci_utility(path_to_Bi_csv:str, path_to_Ci_csv:str,
         f"KW_IND_diff max_abs: {KW_IND_diff_max_abs}\n"
         f"Ci utility: {Ci_utility} / 80\n"
     )
-    print(result)
+    # print(result)
     if output_file:
         with open(output_file, "w") as f:
             f.write(result)
