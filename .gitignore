@@ -19,10 +19,10 @@ build/
 .env
 
 # input / output
-out_anonymized/**/*.csv
-out_anonymized/**/*.json
-out_attack/**/*.csv
-out_attack/**/*.json
+# out_anonymized/**/*.csv
+# out_anonymized/**/*.json
+# out_attack/**/*.csv
+# out_attack/**/*.json
 
 
 # Codex CLI scratch artifacts
