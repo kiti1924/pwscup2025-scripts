@@ -13,6 +13,9 @@ python anonymization/randomshuffle_rows.py out/C22_3.csv out/C22_3_shuffled.csv
 python anonymization/gen_Di.py in/B22_3.csv out/C22_3_shuffled.csv out/sample_D22_3.json
 ```
 
+## Batch Anonymization
+- `anonymization\multi_anonymization.ipynb` (Windows/Linux compatible batch anonymization helper)
+
 ### Accuracy check for C22_*
 ```
 python anonymization/MLacc_files.py
@@ -186,7 +189,7 @@ python attack\attack_example_ex.py --Ai_csv out\PWSCUP2025_Pre_Data_for_Attack\A
 ```
 
 ## Batch Runs
-- `attack\multi_attack.ipynb`
+- `attack\multi_attack.ipynb` (Windows/Linux compatible batch attack helper)
 - `attack\multi_attack.py`
 
 ## Submission Utility
