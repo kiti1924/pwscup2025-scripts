@@ -22,17 +22,17 @@ def eval_Ci_df_utility(Bi_df:pd.DataFrame, Ci_df:pd.DataFrame,
     # 基本統計の誤差を算出
     stats_diff_max_abs = stats_diff.eval_diff_max_abs(Bi_df, Ci_df, 
                                                       print_details=print_details)
-    print(f"stats_diff max_abs: {stats_diff_max_abs}")
+    # print(f"stats_diff max_abs: {stats_diff_max_abs}")
 
     # Logistic Regressionでの誤差を算出
     LR_asthma_diff_max_abs = LR_asthma_diff.eval_diff_max_abs(Bi_df, Ci_df,
                                                               print_details=print_details)
-    print(f"LR_asthma_diff max_abs: {LR_asthma_diff_max_abs}")
+    # print(f"LR_asthma_diff max_abs: {LR_asthma_diff_max_abs}")
 
     # KW_IND_diff
     KW_IND_diff_max_abs = KW_IND_diff.eval_diff_max_abs(Bi_df, Ci_df, 
                                                         print_details=print_details)
-    print(f"KW_IND_diff max_abs: {KW_IND_diff_max_abs}")
+    # print(f"KW_IND_diff max_abs: {KW_IND_diff_max_abs}")
 
     # 重み付きutility
     Ci_utility = 40 * (1-stats_diff_max_abs) + 20 * (1-LR_asthma_diff_max_abs) + 20 * (1-KW_IND_diff_max_abs)
