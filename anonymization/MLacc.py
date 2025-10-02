@@ -105,6 +105,11 @@ def main() -> None:
         metavar="CSV",
         help="Optional path to save per-row predictions and ground truth for inspection.",
     )
+    parser.add_argument(
+        "--accuracy-out",
+        metavar="TXT",
+        help="Optional path to store the accuracy value (one line with a decimal).",
+    )
     args = parser.parse_args()
 
     booster = _load_booster(args.model_json)
@@ -128,6 +133,11 @@ def main() -> None:
         f"{int(metrics['true_negative'])}/"
         f"{int(metrics['false_negative'])}"
     )
+
+    if args.accuracy_out:
+        with open(args.accuracy_out, "w", encoding="utf-8") as fp:
+            fp.write(f"{metrics['accuracy']:.6f}\n")
+        print(f"Saved accuracy to {args.accuracy_out}")
 
     if args.save_pred:
         out_df = pd.DataFrame(
