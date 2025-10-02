@@ -28,9 +28,44 @@ from xgbt_train import build_X  # type: ignore
 sys.path.append(os.path.join(current_dir, "..", "util"))
 from pws_data_format import BiDataFrame, CiDataFrame
 try:
-    from pws_data_format import AiDataFrame
+    from pws_data_format import AiDataFrame, NumSpecError
 except ImportError:
     AiDataFrame = None
+    NumSpecError = None
+
+
+def _iter_exception_causes(exc: BaseException) -> Iterable[BaseException]:
+    """Yield individual exceptions, flattening any nested ExceptionGroups."""
+
+    stack: list[BaseException] = [exc]
+    while stack:
+        current = stack.pop()
+        nested = getattr(current, "exceptions", None)
+        if nested:
+            stack.extend(nested)
+        else:
+            yield current
+
+
+def _load_ai_with_numeric_fix(path: str, error: BaseException) -> pd.DataFrame | None:
+    """Attempt to repair Ai CSV files that only violate numeric specs."""
+
+    if AiDataFrame is None or NumSpecError is None:
+        return None
+
+    issues = list(_iter_exception_causes(error))
+    if not issues or any(not isinstance(issue, NumSpecError) for issue in issues):
+        return None
+
+    raw_df = pd.read_csv(path, dtype=str, keep_default_na=False)
+    fixed_df = CiDataFrame.fix_num_columns(raw_df.copy())
+    try:
+        repaired = AiDataFrame(fixed_df)
+    except Exception:
+        return None
+
+    print(f"Sanitized numeric ranges for '{path}' to satisfy AiDataFrame specs.")
+    return repaired
 
 TARGET = "stroke_flag"
 
@@ -129,6 +164,10 @@ class TrainDiFromMultiple(DiGenBase):
                     frames.append(AiDataFrame.read_csv(path))
                     continue
                 except Exception as ai_error:
+                    repaired = _load_ai_with_numeric_fix(path, ai_error)
+                    if repaired is not None:
+                        frames.append(repaired)
+                        continue
                     raise ValueError(
                         f"Failed to load '{path}' as Bi, Ci, or Ai dataset."
                     ) from ai_error

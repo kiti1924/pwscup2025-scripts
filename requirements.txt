@@ -10,3 +10,4 @@ tqdm
 statsmodels
 jupyter
 seaborn
+synthpop
