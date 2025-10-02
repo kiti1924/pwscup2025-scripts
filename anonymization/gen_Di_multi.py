@@ -26,7 +26,11 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, "..", "analysis"))
 from xgbt_train import build_X  # type: ignore
 sys.path.append(os.path.join(current_dir, "..", "util"))
-from pws_data_format import BiDataFrame, CiDataFrame  # type: ignore
+from pws_data_format import BiDataFrame, CiDataFrame
+try:
+    from pws_data_format import AiDataFrame
+except ImportError:
+    AiDataFrame = None
 
 TARGET = "stroke_flag"
 
@@ -113,15 +117,24 @@ class TrainDiFromMultiple(DiGenBase):
             try:
                 frames.append(BiDataFrame.read_csv(path))
                 continue
-            except Exception:  # noqa: BLE001 - fall back to Ci format
+            except Exception:
                 pass
-
             try:
                 frames.append(CiDataFrame.read_csv(path))
-            except Exception as ci_error:  # noqa: BLE001
-                raise ValueError(
-                    f"Failed to load '{path}' as Bi or Ci dataset."
-                ) from ci_error
+                continue
+            except Exception:
+                pass
+            if AiDataFrame is not None:
+                try:
+                    frames.append(AiDataFrame.read_csv(path))
+                    continue
+                except Exception as ai_error:
+                    raise ValueError(
+                        f"Failed to load '{path}' as Bi, Ci, or Ai dataset."
+                    ) from ai_error
+            raise ValueError(
+                f"Failed to load '{path}' as Bi or Ci dataset."
+            )
 
         if not frames:
             raise ValueError("No training data could be loaded from the provided CSV paths.")

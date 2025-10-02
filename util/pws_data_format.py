@@ -129,17 +129,21 @@ class BiDataFrame(pd.DataFrame):
             col_type = col_spec.get("type", "")
 
             if col_type == "number":
-                min_val = Decimal(str(col_spec["min"]))
-                max_val = Decimal(str(col_spec["max"]))
+                min_val = Decimal(str(col_spec.get("min")))
+                max_val = Decimal(str(col_spec.get("max")))
                 for idx, val in raw_vals.items():
-                    if val == "":
-                        continue
                     try:
-                        d = Decimal(val)
-                    except InvalidOperation:
-                        errors.append(NumSpecError(idx+1, col, val, "数値変換不可"))
+                        dval = Decimal(str(val))
+                        if dval < min_val:
+                            # クランプ
+                            df.at[idx, col] = str(min_val)
+                        elif dval > max_val:
+                            # クランプ
+                            df.at[idx, col] = str(max_val)
+                    except (InvalidOperation, ValueError):
+                        errors.append(NumSpecError(f"{idx}, '{col}', '{val}', '数値変換不可'"))
                         continue
-                    if d < min_val or d > max_val:
+                    if dval < min_val or dval > max_val:
                         errors.append(NumSpecError(idx+1, col, val, f"{min_val}〜{max_val}の範囲外"))
 
             elif col_type == "category":
@@ -355,3 +359,16 @@ class CiDataFrame(BiDataFrame):
             # except*ブロックで予期せぬエラーが発生した時
             print(f"フォーマットの修正を試みましたが失敗しました:")
             raise e
+
+class AiDataFrame(BiDataFrame):
+    """
+    Aデータ（10万行）のためのDataFrameクラス。カラム構成はBiと同じだが、行数チェックのみ異なる。
+    """
+    ROW_NUM = 100000  # 10万行
+
+    @classmethod
+    def check_row_num(cls, df:pd.DataFrame):
+        row_num = df.shape[0]
+
+        if row_num != cls.ROW_NUM:
+            raise RowNumError(f"期待される行数は{cls.ROW_NUM}, 実際の行数は{row_num}")
