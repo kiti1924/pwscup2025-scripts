@@ -1,0 +1,4 @@
+stats_diff max_abs: 0.10650401481478622
+LR_asthma_diff max_abs: 0.9044016916694798
+KW_IND_diff max_abs: 0.17906771582195347
+Ci utility: 54.07045125757989 / 80
