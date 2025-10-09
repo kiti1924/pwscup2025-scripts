@@ -1,0 +1,4 @@
+anonymization,stats_diff,LR_asthma_diff,KW_IND_diff,Ci_utility
+"CC22_1_mondrian_k8_oka_['asthma', 'stroke']_fix_eval.txt",0.1441175003773456,0.8140858273018362,0.2562308103982396,52.82896723090466
+"CC22_2_mondrian_k8_oka_['asthma', 'stroke']_fix_eval.txt",0.15100675745146386,0.78328481411007,0.2538141346470746,53.217750726798556
+"CC22_3_mondrian_k8_oka_['asthma', 'stroke']_fix_eval.txt",0.13232440969356363,0.5982235744966399,0.1999778511814163,58.74299509869633
