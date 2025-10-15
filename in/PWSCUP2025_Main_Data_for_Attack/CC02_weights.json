@@ -1,0 +1,20 @@
+{
+  "GENDER": 0.02742534922465687,
+  "AGE": 0.5491477636806359,
+  "RACE": 0.0729206715365884,
+  "ETHNICITY": 0.06433423042419599,
+  "encounter_count": 0.896578239138793,
+  "num_procedures": 1.0,
+  "num_medications": 0.41983852364475216,
+  "num_immunizations": 0.2537485582468282,
+  "num_allergies": 0.2391387927720103,
+  "num_devices": 0.3230808663334615,
+  "asthma_flag": 0.0,
+  "stroke_flag": 0.0,
+  "obesity_flag": 0.0,
+  "depression_flag": 0.0,
+  "mean_systolic_bp": 0.641932590029476,
+  "mean_diastolic_bp": 0.7557349737280534,
+  "mean_bmi": 0.9976931949250291,
+  "mean_weight": 0.6460335768294246
+}
