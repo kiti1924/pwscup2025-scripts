@@ -139,7 +139,13 @@ def column_distance(
 
 
 def normalize_distances(distances: Dict[str, float]) -> Dict[str, float]:
-    """Scale distance scores to the [0, 1] range via min-max normalization."""
+    """Scale distance scores to the [0, 1] range via min-max normalization and invert.
+
+    Returns:
+        Dict mapping column names to weights where:
+        - 1.0 indicates identical distributions (minimum distance)
+        - 0.0 indicates maximum distributional difference
+    """
     if not distances:
         return {}
 
@@ -147,10 +153,11 @@ def normalize_distances(distances: Dict[str, float]) -> Dict[str, float]:
     min_val = float(values.min())
     max_val = float(values.max())
     if np.isclose(max_val, min_val):
-        return {column: 0.0 for column in distances}
+        return {column: 1.0 for column in distances}  # 分布が同じ場合は1.0を返す
 
     scale = max_val - min_val
-    return {column: (value - min_val) / scale for column, value in distances.items()}
+    # 1から引くことで反転させる
+    return {column: 1.0 - (value - min_val) / scale for column, value in distances.items()}
 
 
 def compute_weights(
