@@ -12,7 +12,7 @@
 #  - Ci の各行が最も近い df1 の行インデックスを集合化し、その位置を 1、他を 0 にして出力
 
 import argparse
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -109,9 +109,20 @@ def preprocess_categorical(df1: pd.DataFrame, df2: pd.DataFrame, cat_cols: List[
     return (X1c, X2c)
 
 
-def build_feature_matrices(df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    共通列のみ使用し、数値/カテゴリを前処理して結合。float32 の numpy 行列を返す。
+def build_feature_matrices(
+    df1: pd.DataFrame,
+    df2: pd.DataFrame,
+    return_feature_names: bool = False,
+) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, List[str]]]:
+    """共通列のみ使用し、数値/カテゴリを前処理して結合。
+
+    Args:
+        df1: 参照側 DataFrame。
+        df2: 照合側 DataFrame。
+        return_feature_names: True の場合は特徴量名リストも返す。
+
+    Returns:
+        (X1, X2) または (X1, X2, feature_names)。
     """
     common_cols = [c for c in df1.columns if c in df2.columns]
     if not common_cols:
@@ -130,8 +141,13 @@ def build_feature_matrices(df1: pd.DataFrame, df2: pd.DataFrame) -> Tuple[np.nda
     X2 = pd.concat([X2n, X2c], axis=1)
 
     # 空になった場合もある（全列ゼロ分散等）
+    feature_names: List[str] = list(X1.columns)
     X1 = X1.astype("float32", copy=False)
     X2 = X2.astype("float32", copy=False)
+
+    if return_feature_names:
+        return X1.values, X2.values, feature_names
+
     return X1.values, X2.values
 
 

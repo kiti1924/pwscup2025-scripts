@@ -165,7 +165,7 @@ class AttackCiHungarianWeightedEntropy(ABC):
     
     def _features(self, path_to_Ai_csv: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         Ai_df = pd.read_csv(path_to_Ai_csv, dtype=str, keep_default_na=False)
-        res = build_feature_matrices(Ai_df, self.Ci_df)
+        res = build_feature_matrices(Ai_df, self.Ci_df, return_feature_names=True)
         if res is None:
             raise RuntimeError("mia.build_feature_matrices returned None; check mia implementation")
         if len(res) == 3:
