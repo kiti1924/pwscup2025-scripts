@@ -98,50 +98,71 @@ class AttackCiHungarianWeightedEntropy(ABC):
         else:
             ent = ent / float(ent.sum())
 
+        # build per-feature column vector for use in all branches (per-feature expansion)
+        cvec = np.zeros(n, dtype=float)
+        for i, fname in enumerate(feature_names):
+            base_col = fname.split("_onehot")[0]
+            cvec[i] = float(norm_map.get(base_col, 1.0))
+        # normalize cvec to sum=1 for comparison / mixing (keep zeros if all zero)
+        if cvec.sum() > 0:
+            cvec_norm = cvec / float(cvec.sum())
+        else:
+            cvec_norm = cvec.copy()
+
+        # verbose debug BEFORE any early return
+        if self.verbose:
+            import numpy as _np
+            print(f"[combine_weights] alpha={self.alpha} mode={self.combine_mode}")
+            print("[combine_weights] entropy (first10):", _np.round(ent[:10], 6).tolist())
+            print("[combine_weights] colweights per-feature (first10):", _np.round(cvec_norm[:10], 6).tolist())
+            print("[combine_weights] ent==col approx:", bool(_np.allclose(ent, cvec_norm, atol=1e-8)))
+
         # quick boundary handling to avoid numerical edge cases and guarantee exact behavior
         eps = 1e-12
         alpha = float(self.alpha)
         if alpha <= eps:
             # alpha == 0 -> use column weights only (per-feature expansion)
-            if not norm_map:
+            if cvec.sum() <= 0:
                 # no column weights provided -> fallback to entropy
                 return ent.copy()
-            cvec = np.zeros(n, dtype=float)
-            for i, fname in enumerate(feature_names):
-                base_col = fname.split("_onehot")[0]
-                cvec[i] = float(norm_map.get(base_col, 1.0))
             s = cvec.sum()
-            return (cvec / s) if s > 0 else np.ones(n) / n
+            out = (cvec / s) if s > 0 else np.ones(n) / n
+            if self.verbose:
+                print("[combine_weights] returning column-only weights (alpha=0)")
+            return out
 
         if alpha >= 1.0 - eps:
             # alpha == 1 -> use entropy only
+            if self.verbose:
+                print("[combine_weights] returning entropy-only weights (alpha=1)")
             return ent.copy()
 
         # general case
         if self.combine_mode in ("mul", "geom", "geometric"):
             # multiplicative / geometric interpolation (default)
-            for i, fname in enumerate(feature_names):
-                base_col = fname.split("_onehot")[0]
+            # important: use per-feature values in [0,1] scale; use small eps to avoid zeros
+            for i in range(n):
                 e_w = float(ent[i])
-                c_w = float(norm_map.get(base_col, 1.0))  # default 1.0 = neutral for multiplication
-
-                # avoid zero bases causing zeroing when alpha in (0,1)
+                c_w = float(cvec_norm[i]) if cvec_norm.sum() > 0 else 1.0
                 e_w_safe = max(e_w, eps)
                 c_w_safe = max(c_w, eps)
                 combined[i] = (e_w_safe ** alpha) * (c_w_safe ** (1.0 - alpha))
         else:
             # linear interpolation
-            for i, fname in enumerate(feature_names):
-                base_col = fname.split("_onehot")[0]
+            for i in range(n):
                 e_w = float(ent[i])
-                c_w = float(norm_map.get(base_col, 1.0))
+                c_w = float(cvec_norm[i]) if cvec_norm.sum() > 0 else 1.0
                 combined[i] = alpha * e_w + (1.0 - alpha) * c_w
 
         s = combined.sum()
         if s == 0:
             return np.ones(n) / n
-        return combined / s
-
+        out = combined / s
+        if self.verbose:
+            import numpy as _np
+            print("[combine_weights] combined (first10):", _np.round(out[:10], 6).tolist())
+        return out
+    
     def _features(self, path_to_Ai_csv: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         Ai_df = pd.read_csv(path_to_Ai_csv, dtype=str, keep_default_na=False)
         res = build_feature_matrices(Ai_df, self.Ci_df)
