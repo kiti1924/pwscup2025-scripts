@@ -26,6 +26,7 @@ class AttackCiHungarianWeightedEntropy(ABC):
         verbose: bool = False,
         column_weights: Optional[Dict[str, float]] = None,
         alpha: float = 0.5,
+        combine_mode: str = "mul",  # "mul" (multiplicative/geometric) or "linear"
     ):
         self.Ci_df = pd.read_csv(path_to_Ci_csv, dtype=str, keep_default_na=False)
         self.mode = mode
@@ -35,6 +36,7 @@ class AttackCiHungarianWeightedEntropy(ABC):
         self.verbose = bool(verbose)
         self.column_weights = column_weights or {}
         self.alpha = float(alpha)
+        self.combine_mode = str(combine_mode)
 
         self.inferred: Optional[pd.DataFrame] = None
         self.match_table_: Optional[pd.DataFrame] = None
@@ -63,25 +65,77 @@ class AttackCiHungarianWeightedEntropy(ABC):
         return ent_w / sumw
 
     def _combine_weights(self, entropy_weights: np.ndarray, column_weights: Dict[str, float], feature_names: List[str]) -> np.ndarray:
-        """Combine entropy-based per-feature weights and per-column weights (from JSON)."""
+        """Combine entropy-based per-feature weights and per-column weights (from JSON).
+
+        Two combination modes supported (default: multiplicative 'mul'):
+          - 'mul' / 'geom': geometric interpolation -> (e_w^alpha * c_w^(1-alpha))
+          - 'linear': linear interpolation -> alpha * e_w + (1-alpha) * c_w
+
+        alpha semantics:
+          - alpha = 1.0 -> rely only on entropy
+          - alpha = 0.0 -> rely only on column_weights
+        """
         n = len(feature_names)
         combined = np.zeros(n, dtype=float)
+
+        # normalize column_weights values to [0,1] (min-max); if absent, norm_map stays empty
         if column_weights:
             vals = np.array(list(column_weights.values()), dtype=float)
-            # use np.ptp for NumPy 2.0 compatibility
             if np.ptp(vals) > 0:
                 minv, maxv = vals.min(), vals.max()
                 norm_map = {k: (float(v) - float(minv)) / float(maxv - minv) for k, v in column_weights.items()}
             else:
+                # all equal -> treat as neutral (1.0)
                 norm_map = {k: 1.0 for k in column_weights.keys()}
         else:
             norm_map = {}
 
-        for i, fname in enumerate(feature_names):
-            base_col = fname.split("_onehot")[0]
-            e_w = float(entropy_weights[i])
-            c_w = float(norm_map.get(base_col, e_w))
-            combined[i] = self.alpha * e_w + (1.0 - self.alpha) * c_w
+        # ensure numpy arrays
+        ent = np.asarray(entropy_weights, dtype=float)
+        # ensure entropy is non-negative; if all zero -> fallback to uniform
+        if ent.sum() <= 0:
+            ent = np.ones_like(ent, dtype=float) / max(1, len(ent))
+        else:
+            ent = ent / float(ent.sum())
+
+        # quick boundary handling to avoid numerical edge cases and guarantee exact behavior
+        eps = 1e-12
+        alpha = float(self.alpha)
+        if alpha <= eps:
+            # alpha == 0 -> use column weights only (per-feature expansion)
+            if not norm_map:
+                # no column weights provided -> fallback to entropy
+                return ent.copy()
+            cvec = np.zeros(n, dtype=float)
+            for i, fname in enumerate(feature_names):
+                base_col = fname.split("_onehot")[0]
+                cvec[i] = float(norm_map.get(base_col, 1.0))
+            s = cvec.sum()
+            return (cvec / s) if s > 0 else np.ones(n) / n
+
+        if alpha >= 1.0 - eps:
+            # alpha == 1 -> use entropy only
+            return ent.copy()
+
+        # general case
+        if self.combine_mode in ("mul", "geom", "geometric"):
+            # multiplicative / geometric interpolation (default)
+            for i, fname in enumerate(feature_names):
+                base_col = fname.split("_onehot")[0]
+                e_w = float(ent[i])
+                c_w = float(norm_map.get(base_col, 1.0))  # default 1.0 = neutral for multiplication
+
+                # avoid zero bases causing zeroing when alpha in (0,1)
+                e_w_safe = max(e_w, eps)
+                c_w_safe = max(c_w, eps)
+                combined[i] = (e_w_safe ** alpha) * (c_w_safe ** (1.0 - alpha))
+        else:
+            # linear interpolation
+            for i, fname in enumerate(feature_names):
+                base_col = fname.split("_onehot")[0]
+                e_w = float(ent[i])
+                c_w = float(norm_map.get(base_col, 1.0))
+                combined[i] = alpha * e_w + (1.0 - alpha) * c_w
 
         s = combined.sum()
         if s == 0:
@@ -190,6 +244,7 @@ if __name__ == "__main__":
     ap.add_argument("--out-map", default=None)
     ap.add_argument("--weights-file", type=str, default=None, help="Path to JSON file with column weights")
     ap.add_argument("--alpha", type=float, default=0.5, help="mixing factor for entropy vs column weights (0..1)")
+    ap.add_argument("--combine-mode", choices=["mul", "linear"], default="mul", help="combination mode: 'mul' (multiplicative/geometric) or 'linear' (convex mix)")
 
     args = ap.parse_args()
 
@@ -208,6 +263,7 @@ if __name__ == "__main__":
         verbose=args.verbose,
         column_weights=column_weights,
         alpha=args.alpha,
+        combine_mode=args.combine_mode,
     )
 
     attacker.infer(args.path_to_Ai_csv)
