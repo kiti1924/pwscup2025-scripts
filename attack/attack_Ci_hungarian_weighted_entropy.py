@@ -45,7 +45,7 @@ class AttackCiHungarianWeightedEntropy(ABC):
             print(msg)
 
     def _calculate_entropy_weights(self, X: np.ndarray) -> np.ndarray:
-        """Compute per-feature entropy weights (inverse of entropy, normalized)."""
+        """Compute per-feature entropy weights (proportional to entropy, normalized)."""
         if X is None:
             raise RuntimeError("X is None in _calculate_entropy_weights")
         n_features = X.shape[1]
@@ -54,8 +54,9 @@ class AttackCiHungarianWeightedEntropy(ABC):
             col = X[:, i]
             vals, counts = np.unique(col, return_counts=True)
             probs = counts / counts.sum()
-            ent = float(entropy(probs))
-            ent_w[i] = 1.0 / (1.0 + ent)
+            # Direct entropy weight (not inverse)
+            ent_w[i] = float(entropy(probs))
+        
         sumw = ent_w.sum()
         if sumw == 0:
             return np.ones(n_features) / n_features
