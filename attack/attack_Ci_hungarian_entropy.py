@@ -40,33 +40,63 @@ class AttackCiHungarianEntropy(ABC):
             print(msg)
 
     def _calculate_entropy_weights(self, X: np.ndarray) -> np.ndarray:
-        """Compute per-feature entropy weights (proportional to entropy, normalized).
-        
-        Alpha controls entropy weighting strength:
-        - alpha = 1.0: full entropy weighting (original behavior)
-        - alpha = 0.0: uniform weighting (no entropy effect)
-        - 0 < alpha < 1: partial entropy weighting
+        """Compute per-feature entropy weights.
+
+        For numeric columns we compute a histogram (binned) entropy; for categorical
+        columns we use value-count entropy. Entropy is normalized by the max possible
+        entropy for the chosen bin/cardinality, then raised to `alpha` and normalized
+        to sum to 1. Alpha=0 -> uniform weights, alpha=1 -> full normalized entropy.
         """
         if X is None:
             raise RuntimeError("X is None in _calculate_entropy_weights")
-        n_features = X.shape[1]
-        
-        # If alpha is 0, return uniform weights
-        if self.alpha <= 0.0:
-            return np.ones(n_features) / n_features
-            
-        ent_w = np.empty(n_features, dtype=float)
+        n_samples, n_features = X.shape
+        ent_w = np.zeros(n_features, dtype=float)
+
         for i in range(n_features):
             col = X[:, i]
-            vals, counts = np.unique(col, return_counts=True)
-            probs = counts / counts.sum()
-            # Apply alpha to entropy weight
-            ent_w[i] = float(entropy(probs)) ** self.alpha
-        
+
+            # try numeric conversion
+            numeric_col = None
+            try:
+                numeric = np.asarray(col, dtype=float)
+                # treat as numeric only if at least one non-NaN value
+                if not np.all(np.isnan(numeric)):
+                    numeric_col = numeric[~np.isnan(numeric)]
+            except Exception:
+                numeric_col = None
+
+            if numeric_col is not None and numeric_col.size > 0:
+                # choose reasonable bin count
+                nbins = min(50, max(5, int(np.sqrt(max(1, n_samples)))))
+                counts, _ = np.histogram(numeric_col, bins=nbins)
+                if counts.sum() == 0:
+                    probs = np.ones(nbins) / nbins
+                else:
+                    probs = counts / counts.sum()
+                ent = float(entropy(probs))
+                max_ent = float(np.log(len(probs))) if len(probs) > 1 else 1.0
+                norm_ent = ent / max_ent if max_ent > 0 else 0.0
+                ent_w[i] = norm_ent ** self.alpha
+            else:
+                # categorical / string-like
+                vals, counts = np.unique(col, return_counts=True)
+                if counts.sum() == 0:
+                    ent_w[i] = 0.0
+                else:
+                    probs = counts / counts.sum()
+                    ent = float(entropy(probs))
+                    max_ent = float(np.log(len(probs))) if len(probs) > 1 else 1.0
+                    norm_ent = ent / max_ent if max_ent > 0 else 0.0
+                    ent_w[i] = norm_ent ** self.alpha
+
         sumw = ent_w.sum()
         if sumw == 0:
+            # fallback to uniform
             return np.ones(n_features) / n_features
-        return ent_w / sumw
+        weights = ent_w / sumw
+        self._log(f"Entropy raw (first10): {np.round(ent_w[:10], 6).tolist()}")
+        self._log(f"Entropy weights (first10): {np.round(weights[:10], 6).tolist()}")
+        return weights
 
     def _features(self, path_to_Ai_csv: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         Ai_df = pd.read_csv(path_to_Ai_csv, dtype=str, keep_default_na=False)
