@@ -1,0 +1,183 @@
+{
+  "RandomForest": {
+    "best_params": {
+      "n_estimators": 1200,
+      "min_samples_split": 20,
+      "min_samples_leaf": 8,
+      "max_features": "log2",
+      "max_depth": 16,
+      "bootstrap": true
+    },
+    "cv_auc": 0.8914264903224247,
+    "base": {
+      "thr": 0.5,
+      "Accuracy": 0.8361,
+      "Precision": 0.6709,
+      "Recall": 0.7095,
+      "F1": 0.6896,
+      "ROC_AUC": 0.9219,
+      "CM": [
+        [
+          10177,
+          1390
+        ],
+        [
+          1160,
+          2833
+        ]
+      ]
+    },
+    "best_f1": {
+      "thr": 0.38,
+      "Accuracy": 0.856,
+      "Precision": 0.6493,
+      "Recall": 0.9539,
+      "F1": 0.7727,
+      "ROC_AUC": 0.9219,
+      "CM": [
+        [
+          9510,
+          2057
+        ],
+        [
+          184,
+          3809
+        ]
+      ]
+    },
+    "best_youden": {
+      "thr": 0.38,
+      "Accuracy": 0.856,
+      "Precision": 0.6493,
+      "Recall": 0.9539,
+      "F1": 0.7727,
+      "ROC_AUC": 0.9219,
+      "CM": [
+        [
+          9510,
+          2057
+        ],
+        [
+          184,
+          3809
+        ]
+      ]
+    }
+  },
+  "LogisticRegression": {
+    "cv_meta": {
+      "cv_auc_mean": 0.8741295353769816
+    },
+    "base": {
+      "thr": 0.5,
+      "Accuracy": 0.9043,
+      "Precision": 0.8539,
+      "Recall": 0.7566,
+      "F1": 0.8023,
+      "ROC_AUC": 0.9599,
+      "CM": [
+        [
+          11050,
+          517
+        ],
+        [
+          972,
+          3021
+        ]
+      ]
+    },
+    "best_f1": {
+      "thr": 0.415,
+      "Accuracy": 0.9025,
+      "Precision": 0.7998,
+      "Recall": 0.8272,
+      "F1": 0.8132,
+      "ROC_AUC": 0.9599,
+      "CM": [
+        [
+          10740,
+          827
+        ],
+        [
+          690,
+          3303
+        ]
+      ]
+    },
+    "best_youden": {
+      "thr": 0.3,
+      "Accuracy": 0.881,
+      "Precision": 0.709,
+      "Recall": 0.9093,
+      "F1": 0.7968,
+      "ROC_AUC": 0.9599,
+      "CM": [
+        [
+          10077,
+          1490
+        ],
+        [
+          362,
+          3631
+        ]
+      ]
+    }
+  },
+  "XGBoost": {
+    "best_iteration": 110,
+    "base": {
+      "thr": 0.5,
+      "Accuracy": 0.8175,
+      "Precision": 0.6386,
+      "Recall": 0.6659,
+      "F1": 0.652,
+      "ROC_AUC": 0.915,
+      "CM": [
+        [
+          10062,
+          1505
+        ],
+        [
+          1334,
+          2659
+        ]
+      ]
+    },
+    "best_f1": {
+      "thr": 0.315,
+      "Accuracy": 0.8402,
+      "Precision": 0.6222,
+      "Recall": 0.9599,
+      "F1": 0.755,
+      "ROC_AUC": 0.915,
+      "CM": [
+        [
+          9240,
+          2327
+        ],
+        [
+          160,
+          3833
+        ]
+      ]
+    },
+    "best_youden": {
+      "thr": 0.295,
+      "Accuracy": 0.8337,
+      "Precision": 0.61,
+      "Recall": 0.9755,
+      "F1": 0.7506,
+      "ROC_AUC": 0.915,
+      "CM": [
+        [
+          9077,
+          2490
+        ],
+        [
+          98,
+          3895
+        ]
+      ]
+    }
+  }
+}

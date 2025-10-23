@@ -11,6 +11,8 @@ from sklearn.metrics import (
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from xgboost.callback import EarlyStopping
+import xgboost as xgb
 
 # ---- Optional GPU libs (RAPIDS) ----
 HAS_CUML = False
@@ -156,33 +158,46 @@ def train_logreg_fullpower(X_train, y_train, random_state=42):
 
 # ----- XGBoost (GPU) -----
 def train_xgb_fullpower(X_train, y_train, random_state=42):
-    if not HAS_XGB:
-        return None, None
+    # 内部分割（early stopping用）
     Xtr, Xva, ytr, yva = train_test_split(
         X_train, y_train, test_size=0.2, random_state=random_state, stratify=y_train
     )
-    xgb = XGBClassifier(
-        n_estimators=6000,              # 大きめ（early stoppingで止まる）
-        learning_rate=0.03,
-        max_depth=9,                    # 深めで表現力を確保
-        min_child_weight=2,
-        subsample=0.8,
-        colsample_bytree=0.7,
-        gamma=0.0,
-        reg_lambda=2.0, reg_alpha=0.1,
-        tree_method="gpu_hist",         # ★ GPU
-        predictor="gpu_predictor",
-        random_state=random_state,
-        eval_metric=["auc", "logloss"],
-        n_jobs=-1
-    )
-    xgb.fit(
-        Xtr, ytr,
-        eval_set=[(Xtr, ytr), (Xva, yva)],
+
+    # DMatrix へ変換（ネイティブAPI）
+    dtrain = xgb.DMatrix(Xtr, label=ytr)
+    dvalid = xgb.DMatrix(Xva, label=yva)
+
+    # GPU & 高性能設定
+    params = {
+        "objective": "binary:logistic",
+        "eval_metric": ["auc", "logloss"],
+        "tree_method": "gpu_hist",       # ★GPU
+        "predictor": "gpu_predictor",
+        "max_depth": 9,
+        "min_child_weight": 2,
+        "subsample": 0.8,
+        "colsample_bytree": 0.7,
+        "gamma": 0.0,
+        "lambda": 2.0,                   # L2
+        "alpha": 0.1,                    # L1
+        "eta": 0.03,                     # learning_rate
+        "seed": random_state
+    }
+
+    # 大きめラウンド + 早期停止
+    num_boost_round = 6000
+    booster = xgb.train(
+        params=params,
+        dtrain=dtrain,
+        num_boost_round=num_boost_round,
+        evals=[(dtrain, "train"), (dvalid, "validation")],
         early_stopping_rounds=200,
-        verbose=False
+        verbose_eval=False
     )
-    return xgb, int(xgb.best_iteration)
+
+    # 返り値は Booster とベスト反復
+    best_iter = booster.best_iteration if booster.best_iteration is not None else booster.best_ntree_limit - 1
+    return booster, int(best_iter)
 
 # ----- 実行 -----
 def main():
