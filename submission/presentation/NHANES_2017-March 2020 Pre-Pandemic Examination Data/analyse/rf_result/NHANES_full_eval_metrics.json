@@ -1,0 +1,23 @@
+{
+  "metrics": {
+    "Accuracy": 0.8509,
+    "Precision": 0.6837,
+    "Recall": 0.7796,
+    "F1": 0.7285,
+    "ROC_AUC": 0.9258,
+    "n_features_after_encoding": 24,
+    "n_train": 10000,
+    "n_test": 15560
+  },
+  "confusion_matrix": [
+    [
+      10127,
+      1440
+    ],
+    [
+      880,
+      3113
+    ]
+  ],
+  "classification_report": "              precision    recall  f1-score   support\n\n           0       0.92      0.88      0.90     11567\n           1       0.68      0.78      0.73      3993\n\n    accuracy                           0.85     15560\n   macro avg       0.80      0.83      0.81     15560\nweighted avg       0.86      0.85      0.85     15560\n"
+}
