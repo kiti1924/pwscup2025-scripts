@@ -2,7 +2,13 @@
 
 ## Anonymization
 - Team 01
-
+    - syntheaで作られた合成データ
+        - 
+- Team 02
+    - 
+- Team 19
+- Team 23
+    - 
 ## Attack
 - Team 01
 
